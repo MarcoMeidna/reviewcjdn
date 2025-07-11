@@ -190,20 +190,26 @@
     }
 
     function enviarEncuesta() {
-      const lugar = document.querySelector('input[name="lugar"]:checked').value;
-      const comentario = document.getElementById("comentario").value;
+      const lugar = document.querySelector('input[name="lugar"]:checked')?.value || '';
+      const comentario = document.getElementById("comentario").value || '';
+      const calificacion = selectedCalificacion;
 
-      fetch("https://script.google.com/macros/s/AKfycbw2bzJBBNxqSH7s3VNFH2ad2kSIsBcy7jfJhjVMPKN8PaCgb0jE-5qhSrnl9gZ4Cdhl/exec", {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: `lugar=${encodeURIComponent(lugar)}&calificacion=${selectedCalificacion}&comentario=${encodeURIComponent(comentario)}`
+      const scriptURL = "https://script.google.com/macros/s/AKfycbw2bzJBBNxqSH7s3VNFH2ad2kSIsBcy7jfJhjVMPKN8PaCgb0jE-5qhSrnl9gZ4Cdhl/exec";
+
+      fetch(scriptURL, {
+        method: 'POST',
+        body: new URLSearchParams({
+          lugar: lugar,
+          calificacion: calificacion,
+          comentario: comentario
+        })
+      })
+      .then(response => {
+        document.getElementById("mensajeFinal").innerText = "¡Gracias por tu respuesta!";
+      })
+      .catch(error => {
+        document.getElementById("mensajeFinal").innerText = "Error al enviar. Intente nuevamente.";
       });
-
-      document.getElementById("mensajeFinal").innerText = "Gracias por darnos tu opinión";
-      document.querySelectorAll("button").forEach(btn => btn.disabled = true);
     }
   </script>
 
