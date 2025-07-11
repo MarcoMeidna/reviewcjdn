@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Encuesta de Satisfacción</title>
+  <style>
+    body {
+      font-family: Calibri, Arial, sans-serif;
+      font-size: 24px;
+      text-align: center;
+      padding: 30px;
+      background-color: #f9f9f9;
+    }
+
+    img {
+      max-width: 300px;
+      margin-bottom: 30px;
+    }
+
+    .step {
+      display: none;
+    }
+
+    .step.active {
+      display: block;
+    }
+
+    .star {
+      font-size: 100px;
+      cursor: pointer;
+      color: lightgray;
+      transition: color 0.2s;
+    }
+
+    .star.selected {
+      color: gold;
+    }
+
+    label {
+      display: block;
+      text-align: left;
+      margin: 8px auto;
+      max-width: 400px;
+      padding-left: 10px;
+    }
+
+    button {
+      padding: 10px 25px;
+      font-size: 16px;
+      background-color: #5e2d91;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #4b1f7a;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: space-between;
+      max-width: 400px;
+      margin: 30px auto 0 auto;
+    }
+
+    textarea {
+      width: 90%;
+      max-width: 600px;
+      height: 100px;
+      font-size: 16px;
+      padding: 10px;
+      margin-top: 20px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      resize: none;
+    }
+
+    .warning {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    hr {
+      border: none;
+      height: 1px;
+      background-color: #ccc;
+      margin: 30px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Logo -->
+  <img src="logo-clinica.png" alt="Logo Clínica Jesús del Norte">
+
+  <hr>
+
+  <!-- PASO 1 -->
+  <div class="step active" id="step1">
+    <h2>¿Dónde fue tu atención?</h2>
+    <label><input type="radio" name="lugar" value="Consultorio"> Consultorio</label>
+    <label><input type="radio" name="lugar" value="Hospitalario"> Hospitalario</label>
+    <label><input type="radio" name="lugar" value="Emergencia Adulto"> Emergencia Adulto</label>
+    <label><input type="radio" name="lugar" value="Emergencia Pediátrico"> Emergencia Pediátrico</label>
+    <div class="warning" id="warning1"></div>
+    <div class="button-group" style="justify-content: center;">
+      <button onclick="siguientePaso1()">Siguiente</button>
+    </div>
+  </div>
+
+  <!-- PASO 2 -->
+  <div class="step" id="step2">
+    <h2>¿Del 1 al 5 cuánto calificarías el servicio recibido?</h2>
+    <div class="stars" id="stars">
+      <span class="star" data-value="1">&#9733;</span>
+      <span class="star" data-value="2">&#9733;</span>
+      <span class="star" data-value="3">&#9733;</span>
+      <span class="star" data-value="4">&#9733;</span>
+      <span class="star" data-value="5">&#9733;</span>
+    </div>
+    <div id="resultado"></div>
+    <div class="warning" id="warning2"></div>
+    <div class="button-group">
+      <button onclick="mostrarPaso(1)">⬅ Atrás</button>
+      <button onclick="siguientePaso2()">Siguiente</button>
+    </div>
+  </div>
+
+  <!-- PASO 3 -->
+  <div class="step" id="step3">
+    <h2>Si deseas puedes dejarnos tu comentario.</h2>
+    <textarea id="comentario" maxlength="500" placeholder="Escribe aquí tu comentario (opcional)"></textarea>
+    <div class="button-group">
+      <button onclick="mostrarPaso(2)">⬅ Atrás</button>
+      <button onclick="enviarEncuesta()">Enviar</button>
+    </div>
+    <div id="mensajeFinal" style="margin-top: 25px; font-weight: bold; color: #5e2d91;"></div>
+  </div>
+
+  <script>
+    let pasoActual = 1;
+    let selectedCalificacion = 0;
+
+    const stars = document.querySelectorAll(".star");
+    const resultado = document.getElementById("resultado");
+
+    stars.forEach(star => {
+      star.addEventListener("click", () => {
+        selectedCalificacion = star.getAttribute("data-value");
+        actualizarEstrellas(selectedCalificacion);
+        resultado.innerText = `Seleccionaste ${selectedCalificacion} estrella${selectedCalificacion > 1 ? 's' : ''}.`;
+      });
+    });
+
+    function actualizarEstrellas(valor) {
+      stars.forEach(star => {
+        star.classList.remove("selected");
+        if (star.getAttribute("data-value") <= valor) {
+          star.classList.add("selected");
+        }
+      });
+    }
+
+    function siguientePaso1() {
+      const seleccion = document.querySelector('input[name="lugar"]:checked');
+      if (!seleccion) {
+        document.getElementById("warning1").innerText = "Por favor selecciona una opción.";
+        return;
+      }
+      document.getElementById("warning1").innerText = "";
+      mostrarPaso(2);
+    }
+
+    function siguientePaso2() {
+      if (selectedCalificacion == 0) {
+        document.getElementById("warning2").innerText = "Por favor selecciona una calificación.";
+        return;
+      }
+      document.getElementById("warning2").innerText = "";
+      mostrarPaso(3);
+    }
+
+    function mostrarPaso(numero) {
+      document.querySelectorAll(".step").forEach(step => step.classList.remove("active"));
+      document.getElementById(`step${numero}`).classList.add("active");
+      pasoActual = numero;
+    }
+
+    function enviarEncuesta() {
+      const lugar = document.querySelector('input[name="lugar"]:checked').value;
+      const comentario = document.getElementById("comentario").value;
+
+      fetch("https://script.google.com/macros/s/AKfycbw2bzJBBNxqSH7s3VNFH2ad2kSIsBcy7jfJhjVMPKN8PaCgb0jE-5qhSrnl9gZ4Cdhl/exec", {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `lugar=${encodeURIComponent(lugar)}&calificacion=${selectedCalificacion}&comentario=${encodeURIComponent(comentario)}`
+      });
+
+      document.getElementById("mensajeFinal").innerText = "Gracias por darnos tu opinión";
+      document.querySelectorAll("button").forEach(btn => btn.disabled = true);
+    }
+  </script>
+
+</body>
+</html>
